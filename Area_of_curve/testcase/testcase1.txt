@@ -1,0 +1,13 @@
+TEST CASE 1(GIVEN IN ASSGN.)
+N: 5
+X: 1
+Y: 1
+X: 3
+Y: 4
+X: 5
+Y: 3
+X: 6
+Y: 7
+X: 9
+Y: 5
+ANSWER: 35

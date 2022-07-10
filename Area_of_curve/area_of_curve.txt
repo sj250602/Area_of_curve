@@ -1,0 +1,182 @@
+.data                                                                                                                                                               #  for define some data 
+	input1: .asciiz "Enter the no of points , n:"                                                              #  for taking input from user for total no of points in the graph
+
+	input_x: .asciiz "Enter the x coordinate , x:"                                                           #  for taking input from user for x coordinate
+
+	input_y: .asciiz "Enter the y coordinate , y:"                                                           #  for taking input from user for y coordinate
+
+	input2: .asciiz "\n"                                                                                                             #  for newline
+
+	zero_input: .asciiz "Sorry! we are unable to find area of zero no of points,Please try again!!!"						                  #  for when user gives invalid input 
+
+	one_input: .asciiz "Area of a single point is 0."                 						                 #  for when user gives invalid input
+
+	final_area: .asciiz "The area under the curve formed by the given points is:"       #  print the final area contaied by the points
+
+	area: .double 0.00                    				                 #  for define an area variable as 0 to calculate total area sum 
+
+	two: .double 2.00					                 #  define a two it store a double type constant 2.00 we use it later
+
+.text							                 # for assemble into .text section   
+
+.globl main						                 #  for qtspim startup code contains a jal main instruction 
+	
+main:							                # define a main function here we do our complete process
+
+	li $v0,4                         					               #  here we use v0 == 4 command that means that we want to print the data and data expected by syscall is string type
+	la $a0,input1                                                                                                                     # here we load input1 variable from data to a0 register
+	syscall  						             # we call syscall as print the data store in register a0
+  
+	li $v0,5						             # here we use v0==5 command that means we want to input the data and data expected by syscall is integer type
+	syscall                  					             #  here we call syscall for store the data that given by user
+	move $t0,$v0					             # here we store our data from v0 to a temprary register t0
+ 
+	beq $t0,0,zero_in					             #  here we apply a condition that is if the no of pointer given by user is equal to 0 then call function zero_in
+
+	beq $t0,1,one_in					             #   here we apply a condition that is if the no of pointer given by user is equal to 1 then call function one_in
+
+	l.d $f2, area					            #   here we load area variable form data to f2 register 
+	
+	li $v0,4
+	la $a0,input_x				# call for input_x  
+	syscall
+
+	li $v0, 5     
+	syscall       					# call for x-coordinate 
+	move $t2,$v0
+  
+	li $v0,4
+	la $a0,input_y				# call for input_y
+	syscall
+
+	li $v0, 5     
+	syscall        				# call for y-coordinate 
+	move $t3,$v0
+	
+	li $t1,1						            #  here we intilize our variable t1 as 1 i.e(i==1) for performing our loop operation
+       
+	Loop:  
+		beq $t0, $t1, Exit				            # here we apply a condition that is if the t0 equals to t1 i.e(i==n) then call function Exit
+
+		li $v0,4
+		la $a0,input_x			# call for input_x
+		syscall 
+
+		li $v0, 5  
+		syscall     				# call for x-coordinate
+		move $t4,$v0
+
+		li $v0,4
+		la $a0,input_y			# call for input_y
+		syscall    
+
+		li $v0, 5    
+		syscall    				# call for y-coordinate
+		move $t5,$v0    
+
+		sgt $t6,$t3,0				             # here we apply an condition that if yi>0 i.e t3>0
+
+		sgt $t7,$t5,0				             # here we apply an condition that if y(i+1)>0 i.e t5>0
+
+		bne $t6,$t7,label				             # here we apply an condition that if the signs of yi and y(i+1) are alternative so call label function otherwise carryon
+
+		add $s0,$t3,$t5 				           # here we define an variable s0 that store the value addition of yi and y(i+1) i.e t3 and t5
+		sub $s1,$t4,$t2 				           # here we define an variable s0 that store the value substractio of x(i+1) and xi i.e t2 and t4
+		abs $s0,$s0				           # here we define find the absolute value of s0 becz we find area and area is neither negative
+		abs $s1,$s1				           # here we define find the absolute value of s1 becz we find area and area is neither negative
+		mul $s4,$s0,$s1				          # here we store the multiplied value of |(x(i+1)-xi)|*|(yi+y(i+1))| i.e s0,s1 in s4
+
+		move $a1,$s4				          # move s4 into a1 for converting int to double type value
+		mtc1.d $a1,$f12 				          # store the double value in a1 
+		cvt.d.w $f12, $f12				          # convert the int value to double an store in f12
+		l.d $f4,two   				          # store the data two from two to double type variable f4
+
+		div.d $f6,$f12,$f4				          # double division of f12 i.e multiply of |(xi-x(i+1))|*|yi+y(i+1)| and f4 i.e 2 this gives us area
+		add.d $f2,$f2,$f6  				          # sum the given area of two coordinate to the total area i.e f2
+
+	# this is the operation for srore the value of y(i+1),x(i+1) in yi,xi
+		sub $t2,$t2,$t2  				
+		add $t2,$t2,$t4  
+		sub $t3,$t3,$t3   
+		add $t3,$t3,$t5   
+
+		addi $t1, $t1, 1  				           # increment t1 with 1
+
+		b Loop  					            # restart the function loop
+
+	Exit:    
+
+		li $v0,4
+		la $a0,final_area			# call for final_area
+		syscall
+
+		li $v0,3   					             # here we use v0==3 this means that we want to print an  double type value
+		mov.d $f12,$f2 				            # store our double final answer into f12 for printing
+		syscall  					            # used for printing the final valule of f12 or area
+
+		li $v0, 10					                 # here we use v0==10 that means that out syscall is exit us from the whole code  
+		syscall					                 # here we call the syscall after that our programme is terminated
+
+zero_in:							                 #  here we define function when given no of points is zero
+
+	li $v0,4					
+	la $a0,zero_input				#   call for zero_input
+	syscall
+	
+	li $v0,10
+	syscall					#  call for exit
+
+one_in:							                 #  here we define function when given no of points is zero
+	
+	li $v0,4
+	la $a0,one_input				# call for one_input
+	syscall
+
+	li $v0,10
+	syscall					# call for exit
+
+label:					# define label function
+
+		# here i want to implement the formulae i.e |y1*y1*(x1-x2)|/|(2*(y2-y1)| for finding area
+
+	sub $s0,$t5,$t3					              # here we subtract t3 from t5 and store it in s0 
+	mul $s1,$t3,$t3					              # here we multiply t3 t0 t3 and store it in s1
+	mul $s2,$t5,$t5					              # here we multiply t5 to t5 and store it in s2
+	sub $s3,$t2,$t4					              # here we subtract t4 from t2 and store it in s3
+	mul $s1,$s1,$s3					              # here we multiply s1 to s3 and store it in s1
+	mul $s2,$s2,$s3					              # here we multiply s2 to s3 and store it in s2
+	abs $s1,$s1					              # find the absolute of s1
+	abs $s2,$s2					             # find the absolute of s2
+	abs $s0,$s0					               # find the absolute of s0
+
+	move $a1,$s1   
+	mtc1.d $a1,$f8  		# convert int to double
+	cvt.d.w $f8, $f8
+
+	move $a1,$s0   
+	mtc1.d $a1,$f10  		# convert int to double
+	cvt.d.w $f10, $f10
+
+	div.d $f8,$f8,$f10		
+
+	move $a1,$s2   
+	mtc1.d $a1,$f12  		# convert int to double
+	cvt.d.w $f12, $f12
+
+	div.d $f12,$f12,$f10		# double division of f12,f10m and store in f12
+	add.d $f12,$f12,$f8		# double addition of f12 and f8 and store in f12
+
+	l.d $f4,two       					               #load double type value two in f4
+
+	div.d $f6,$f12,$f4  		# for find are divide by 2
+	add.d $f2,$f2,$f6  		# add area of two points to total area
+
+	# this is the operation for srore the value of y(i+1),x(i+1) in yi,xi	
+	sub $t2,$t2,$t2  
+	add $t2,$t2,$t4  
+	sub $t3,$t3,$t3   		
+	add $t3,$t3,$t5   
+
+	addi $t1, $t1, 1 		# increment of t1 with 1
+
+	b Loop 			# restart loop 

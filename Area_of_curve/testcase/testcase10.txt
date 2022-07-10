@@ -1,0 +1,9 @@
+TEST CASE 10
+N: 3
+X: 0
+Y: -1
+X: 1
+Y: 1
+X: 2
+Y: 1
+ANSWER: 1 
